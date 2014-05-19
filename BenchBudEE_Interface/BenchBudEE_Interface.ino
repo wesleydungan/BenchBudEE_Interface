@@ -11,7 +11,8 @@ void setup()
   // disabled for now
   Serial.begin(9600);
 
-  while (!Serial) {
+  while (!Serial)
+  {
     // wait until the serial port is communicating
   }
 
