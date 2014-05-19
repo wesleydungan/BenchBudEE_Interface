@@ -21,7 +21,7 @@ Cmd    Description                               Value Size  Value Range
 gpv    Get Positive Adjustable Voltage Reading     16-bit      0x000 - 0x3ff (10-bits usable)
 gnv    Get Negative Adjustable Voltage Reading     16-bit      0x000 - 0x3ff (10-bits usable)
 g_c    Get Fan Current Reading                     16-bit      0x0000 - 0xffff
-gft    Get Tachometer Reading                      16-bit      0x000 - 0x3ff (10-bits usable)
+gft    Get Fan Tachometer Reading                  16-bit      0x000 - 0x3ff (10-bits usable)
 g_t    Get Temperature Reading                     16-bit      0x0000 - 0xffff
 gia    Get Instrumentation Amp Reading             16-but      0x0000 - 0xffff
 
