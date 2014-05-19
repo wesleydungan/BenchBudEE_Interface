@@ -2,7 +2,7 @@ BenchBudEE Interface Serial Commands
 
 These commands are designed around the idea that the BenchBudEE will
 be a slave device controlled (at least for now) by a master program
-running on a PC. Initially, I anticipate this will beithe Arduino SKD
+running on a PC. Initially, I anticipate this will be the Arduino SDK
 "Serial Monitor" interface.
 
 SET / WRITE COMMANDS
