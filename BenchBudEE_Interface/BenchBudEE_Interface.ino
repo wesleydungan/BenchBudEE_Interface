@@ -5,6 +5,10 @@
 
 void setup()
 {
+  setup_io_pins();
+  return;
+
+  // disabled the rest for now
   Serial.begin(9600);
 
   while (!Serial) {
@@ -37,12 +41,11 @@ void process_set_command(char* command_buffer)
 
   if (strncmp(command_buffer, "scm", 3) == 0)
   {
-    // 
-    CurrentMeasurementState state = kCurrentMeasurementDisable;
+    FanCurrentMeasurementState state = kFanCurrentMeasurementOff;
 
     if (value > 0)
     {
-      state = kCurrentMeasurementEnable;
+      state = kFanCurrentMeasurementOn;
     }
 
     set_fan_current_measurement_state(state);
@@ -76,7 +79,7 @@ void process_set_command(char* command_buffer)
     // unknown commands should not reach the return_value() call
     return;
   }
-  
+
   return_value(value);
 }
 
@@ -122,6 +125,31 @@ void process_get_command(char* command_buffer)
 
 void loop()
 {
+  // DAC: 0V, 2V, 4V
+  set_fan_current_limit_value(0);
+  delay(2000);
+  set_fan_current_limit_value(127);
+  delay(2000);
+  set_fan_current_limit_value(255);
+  delay(2000);
+  return;
+
+  // DAC: 0V - 4V
+  for (int i = 0; i < 256; i++)
+  {
+    set_fan_current_limit_value(i);
+    delay(250);
+  }
+  return;
+
+  // RELAY: On / Off
+  set_relay_state(kRelayOn);
+  delay(1000);
+  set_relay_state(kRelayOn);
+  delay(1000);
+  return;
+
+  // disabled the rest for now
   if (Serial.available() > 0)
   {
     char command_buffer[256];
@@ -156,4 +184,3 @@ void loop()
     }
   }
 }
-

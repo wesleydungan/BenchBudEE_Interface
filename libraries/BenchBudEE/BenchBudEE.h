@@ -1,10 +1,10 @@
 #include <stdint.h>
 
 
-enum CurrentMeasurementState
+enum FanCurrentMeasurementState
 {
-  kCurrentMeasurementDisable,
-  kCurrentMeasurementEnable
+  kFanCurrentMeasurementOff,
+  kFanCurrentMeasurementOn
 };
 
 
@@ -15,15 +15,18 @@ enum RelayState
 };
 
 
+void setup_io_pins();
+
+
 // Voltage Monitoring
 uint16_t get_positive_voltage_reading();
 uint16_t get_negative_voltage_reading();
 
 
 // Fan
-void set_fan_current_measurement_state(CurrentMeasurementState state);
+void set_fan_current_measurement_state(FanCurrentMeasurementState state);
 void set_fan_current_pwm_value(uint8_t value);
-void set_fan_current_limit_value(uint16_t value);
+void set_fan_current_limit_value(uint8_t value);
 uint16_t get_fan_current_reading();
 uint16_t get_fan_tachometer_reading();
 
