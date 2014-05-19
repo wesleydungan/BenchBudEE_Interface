@@ -6,9 +6,9 @@
 void setup()
 {
   setup_io_pins();
-  return;
 
-  // disabled the rest for now
+#if 0
+  // disabled for now
   Serial.begin(9600);
 
   while (!Serial) {
@@ -16,12 +16,13 @@ void setup()
   }
 
   Serial.print("BenchBudEE Version 1.0\n");
+#endif
 }
 
 
 void unknown_command(char* command_buffer)
 {
-  Serial.print("Error: '");
+  Serial.print("ERROR: '");
   Serial.print(command_buffer);
   Serial.print("' is an unknown BenchBudEE command\n");
 }
@@ -29,6 +30,7 @@ void unknown_command(char* command_buffer)
 
 void return_value(uint16_t value)
 {
+  Serial.print("OK: ");
   char value_string[8];
   sprintf(value_string, "0x%04x\n", value);
   Serial.print(value_string);
@@ -125,6 +127,15 @@ void process_get_command(char* command_buffer)
 
 void loop()
 {
+#if 1
+  // RELAY: On / Off
+  set_relay_state(kRelayOn);
+  delay(2000);
+  set_relay_state(kRelayOff);
+  delay(2000);
+#endif
+
+#if 0
   // DAC: 0V, 2V, 4V
   set_fan_current_limit_value(0);
   delay(2000);
@@ -132,24 +143,19 @@ void loop()
   delay(2000);
   set_fan_current_limit_value(255);
   delay(2000);
-  return;
+#endif
 
-  // DAC: 0V - 4V
+#if 0
+  // DAC: scan through the 0V - 4V range
   for (int i = 0; i < 256; i++)
   {
     set_fan_current_limit_value(i);
-    delay(250);
+    delay(100);
   }
   return;
+#endif
 
-  // RELAY: On / Off
-  set_relay_state(kRelayOn);
-  delay(1000);
-  set_relay_state(kRelayOn);
-  delay(1000);
-  return;
-
-  // disabled the rest for now
+#if 0
   if (Serial.available() > 0)
   {
     char command_buffer[256];
@@ -183,4 +189,5 @@ void loop()
       unknown_command(command_buffer);
     }
   }
+#endif
 }
