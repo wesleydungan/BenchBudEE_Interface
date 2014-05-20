@@ -128,8 +128,8 @@ void process_get_command(char* command_buffer)
 
 void loop()
 {
-#if 1
-  // RELAY: On / Off
+#if 0
+  // turn the relay on and off
   set_relay_state(kRelayOn);
   delay(2000);
   set_relay_state(kRelayOff);
@@ -137,23 +137,37 @@ void loop()
 #endif
 
 #if 0
-  // DAC: 0V, 2V, 4V
+  // cycle through the fan PWM range
+  for (int i = 0; i < 8; i++)
+  {
+    set_fan_current_pwm_value((1 << i) - 1);
+    delay(2000);
+  }
+#endif
+
+#if 0
+  // test the DAC output (0V, 1.02V, 2.04V)
+  set_fan_current_pwm_value(255);
+  
   set_fan_current_limit_value(0);
   delay(2000);
   set_fan_current_limit_value(127);
   delay(2000);
   set_fan_current_limit_value(255);
   delay(2000);
+  }  
 #endif
 
-#if 0
-  // DAC: scan through the 0V - 4V range
-  for (int i = 0; i < 256; i++)
-  {
-    set_fan_current_limit_value(i);
-    delay(100);
-  }
-  return;
+#if 1
+  // turn on current measurement bypass MOSFET on and off
+  set_fan_current_pwm_value(255);
+  // 35mA limit (when R15 = 3K, R61 = 1K)
+  set_fan_current_limit_value(18);
+
+  set_fan_current_measurement_state(kFanCurrentMeasurementOn);
+  delay(2000);
+  set_fan_current_measurement_state(kFanCurrentMeasurementOff);
+  delay(2000);
 #endif
 
 #if 0

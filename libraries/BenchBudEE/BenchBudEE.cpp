@@ -81,13 +81,13 @@ void cycle_clock()
 
 uint16_t get_positive_voltage_reading()
 {
-  return 0;
+  return analogRead(kPOSITIVE_VOLTAGE_READING);
 }
 
 
 uint16_t get_negative_voltage_reading()
 {
-  return 0;
+  return analogRead(kNEGATIVE_VOLTAGE_READING);
 }
 
 
@@ -110,6 +110,7 @@ void set_fan_current_measurement_state(FanCurrentMeasurementState state)
 
 void set_fan_current_pwm_value(uint8_t value)
 {
+  analogWrite(kFAN_CURRENT_PWM, value);
 }
 
 
@@ -125,8 +126,8 @@ void set_fan_current_limit_value(uint8_t value)
     bit 14    - Don’t Care
 
     bit 13    _GA: Output Gain Selection bit
-               1 = 1x (VOUT = VREF * D/4096)
-               0 = 2x (VOUT = 2 * VREF * D/4096), where internal VREF = 2.048V.
+                1 = 1x (VOUT = VREF * D/4096)
+                0 = 2x (VOUT = 2 * VREF * D/4096), where internal VREF = 2.048V.
 
     bit 12    _SHDN: Output Shutdown Control bit
                 1 = Active mode operation.
@@ -139,14 +140,14 @@ void set_fan_current_limit_value(uint8_t value)
   digitalWrite(kDAC__LDAC, HIGH);
   delay(1);
 
-  // 15, 14, 13
+  // 15, 14
   digitalWrite(kMOSI, LOW);
   cycle_clock();
   cycle_clock();
-  cycle_clock();
 
-  // 12
+  // 13, 12
   digitalWrite(kMOSI, HIGH);
+  cycle_clock();
   cycle_clock();
 
   // msb first (11 - 4)
@@ -176,13 +177,13 @@ void set_fan_current_limit_value(uint8_t value)
 
 uint16_t get_fan_current_reading()
 {
-  return 0;
+  return analogRead(kFAN_CURRENT_READING);
 }
 
 
 uint16_t get_fan_tachometer_reading()
 {
-  return 0;
+  return analogRead(kFAN_TACHOMETER_READING);
 }
 
 
@@ -192,6 +193,7 @@ uint16_t get_fan_tachometer_reading()
 
 void set_led_pwm_value(uint8_t value)
 {
+  analogWrite(kLED_PWM, value);
 }
 
 
