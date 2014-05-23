@@ -158,7 +158,7 @@ void loop()
   }  
 #endif
 
-#if 1
+#if 0
   // turn on current measurement bypass MOSFET on and off
   set_fan_current_pwm_value(255);
   // 35mA limit (when R15 = 3K, R61 = 1K)
@@ -167,6 +167,11 @@ void loop()
   set_fan_current_measurement_state(kFanCurrentMeasurementOn);
   delay(2000);
   set_fan_current_measurement_state(kFanCurrentMeasurementOff);
+  delay(2000);
+#endif
+
+#if 1
+  get_temperature_reading();
   delay(2000);
 #endif
 

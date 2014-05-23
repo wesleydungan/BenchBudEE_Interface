@@ -35,8 +35,7 @@ void setup_io_pins()
   pinMode(kDAC__LDAC, OUTPUT);
   digitalWrite(kDAC__LDAC, HIGH);
 
-  pinMode(kADC__DR, OUTPUT);
-  digitalWrite(kADC__DR, HIGH);
+  pinMode(kADC__DR, INPUT);
 
   pinMode(kADC__RESET, OUTPUT);
   digitalWrite(kADC__RESET, HIGH);
@@ -209,6 +208,56 @@ uint16_t get_instrumentation_amp_reading()
 
 uint16_t get_temperature_reading()
 {
+  uint16_t value = 0;
+
+  digitalWrite(kADC__RESET, LOW);
+  delay(1);
+  digitalWrite(kADC__RESET, HIGH);
+  delay(1);
+
+  digitalWrite(kADC__CS, LOW);
+
+  uint8_t control = 0;
+
+  // A6 A5 (device bits)
+  // '00' are the default device address bits
+  control |= 0 << 7;
+  control |= 0 << 6;
+
+  // A4 A3 A2 A1 A0 (register address bits)
+  // 0x03 - 0x05 is CH1
+  control |= 0 << 5;
+  control |= 0 << 4;
+  control |= 1 << 3;
+  control |= 1 << 2;
+  control |= 0 << 1;
+
+  // read / ~write
+  control |= 1 << 0;
+
+  for (int i = 7; i >= 0; i--)
+  {
+    int bit = (control >> i) & 0x01;
+    digitalWrite(kMOSI, (bit == 0) ? LOW : HIGH);
+    cycle_clock();
+  }
+
+  delay(5);
+
+  // read the six configuration registers
+  for (int j = 0; j < 6; j++)
+  {
+    value = 0;
+    for (int i = 7; i >= 0; i--)
+    {
+      int bit = digitalRead(kMISO) & 0x01;
+      value |= (bit << i);
+      cycle_clock();
+    }
+  }
+
+  digitalWrite(kADC__CS, HIGH);
+
   return 0;
 }
 
