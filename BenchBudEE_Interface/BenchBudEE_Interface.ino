@@ -7,7 +7,7 @@ void setup()
 {
   setup_io_pins();
 
-#if 0
+#if 1
   // disabled for now
   Serial.begin(9600);
 
@@ -155,7 +155,6 @@ void loop()
   delay(2000);
   set_fan_current_limit_value(255);
   delay(2000);
-  }  
 #endif
 
 #if 0
@@ -171,7 +170,8 @@ void loop()
 #endif
 
 #if 1
-  get_temperature_reading();
+  uint16_t value = get_temperature_reading();
+  return_value(value);
   delay(2000);
 #endif
 

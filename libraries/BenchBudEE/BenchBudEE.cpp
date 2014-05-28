@@ -74,6 +74,32 @@ void cycle_clock()
 }
 
 
+void spi_write(uint8_t value)
+{
+  for (int i = 7; i >= 0; i--)
+  {
+    int bit = (value >> i) & 0x01;
+    digitalWrite(kMOSI, (bit == 0) ? LOW : HIGH);
+    cycle_clock();
+  }
+}
+
+
+uint8_t spi_read()
+{
+  uint8_t value = 0;
+
+  for (int i = 7; i >= 0; i--)
+  {
+    int bit = digitalRead(kMISO) & 0x01;
+    value |= (bit << i);
+    cycle_clock();
+  }
+
+  return value;
+}
+
+
 //
 // Voltage Monitoring
 //
@@ -139,30 +165,19 @@ void set_fan_current_limit_value(uint8_t value)
   digitalWrite(kDAC__LDAC, HIGH);
   delay(1);
 
-  // 15, 14
-  digitalWrite(kMOSI, LOW);
-  cycle_clock();
-  cycle_clock();
+  uint16_t command = 0;
 
-  // 13, 12
-  digitalWrite(kMOSI, HIGH);
-  cycle_clock();
-  cycle_clock();
+  // 15, 14 are zero
 
-  // msb first (11 - 4)
-  for (int i = 7; i >= 0; i--)
-  {
-    int bit = (value >> i) & 0x01;
-    digitalWrite(kMOSI, (bit == 0) ? LOW : HIGH);
-    cycle_clock();
-  }
+  command |= 1 << 13;
+  command |= 1 << 12;
 
-  // don't care padding (3 - 0)
-  digitalWrite(kMOSI, 0);
-  cycle_clock();
-  cycle_clock();
-  cycle_clock();
-  cycle_clock();
+  command |= static_cast<uint16_t>(value) << 4;
+
+  // 3:0 are zero
+
+  spi_write((command & 0xff00) >> 8);
+  spi_write((command & 0x00ff) >> 0);
 
   digitalWrite(kDAC__CS, HIGH);
   delay(1);
@@ -210,55 +225,89 @@ uint16_t get_temperature_reading()
 {
   uint16_t value = 0;
 
-  digitalWrite(kADC__RESET, LOW);
-  delay(1);
-  digitalWrite(kADC__RESET, HIGH);
-  delay(1);
+  // reset
+  //digitalWrite(kADC__RESET, LOW);
+  //delay(1);
+  //digitalWrite(kADC__RESET, HIGH);
 
   digitalWrite(kADC__CS, LOW);
 
-  uint8_t control = 0;
+  // control byte structure
+  // 7, 8 - device address bits
+  // 6:1 - register address bits
+  // 0 - read / ~write
 
-  // A6 A5 (device bits)
-  // '00' are the default device address bits
-  control |= 0 << 7;
-  control |= 0 << 6;
+  uint8_t command = 0;
 
-  // A4 A3 A2 A1 A0 (register address bits)
-  // 0x03 - 0x05 is CH1
-  control |= 0 << 5;
-  control |= 0 << 4;
-  control |= 1 << 3;
-  control |= 1 << 2;
-  control |= 0 << 1;
+#if 1
+  //
+  // enable the ADC's external clock mode
+  //
+
+  command = 0;
+
+  // 0x0b is Config2
+  command |= 0x0b << 1;
 
   // read / ~write
-  control |= 1 << 0;
+  command |= 0 << 0;
 
-  for (int i = 7; i >= 0; i--)
-  {
-    int bit = (control >> i) & 0x01;
-    digitalWrite(kMOSI, (bit == 0) ? LOW : HIGH);
-    cycle_clock();
-  }
+  spi_write(command);
 
+  command = 0;
+
+  // RESET_CH<1:0>
+  command |= 0 << 7;
+  command |= 0 << 6;
+
+  // SHUTDOWN_CH<1:0>
+  command |= 0 << 5;
+  command |= 0 << 4;
+
+  // DITHER_CH<1:0>
+  command |= 1 << 3;
+  command |= 1 << 2;
+
+  // VREFEXT
+  command |= 0 << 1;
+
+  // CLKEXT
+  command |= 1 << 0;
+
+  spi_write(command);
+
+  // a chip select toggle is needed to end the current command
+  digitalWrite(kADC__CS, HIGH);
+  delay(1);
+  digitalWrite(kADC__CS, LOW);
+
+  // this delay makes debugging easier
+  delay(5);
+#endif
+
+  //
+  // read from ADC
+  //
+
+  command = 0;
+
+  // 0x03-0x05 is CH1
+  command |= 0x03 << 1;
+
+  // read / ~write
+  command |= 1 << 0;
+
+  spi_write(command);
+
+  // this delay makes debugging easier
   delay(5);
 
-  // read the six configuration registers
-  for (int j = 0; j < 6; j++)
-  {
-    value = 0;
-    for (int i = 7; i >= 0; i--)
-    {
-      int bit = digitalRead(kMISO) & 0x01;
-      value |= (bit << i);
-      cycle_clock();
-    }
-  }
+  value |= static_cast<uint16_t>(spi_read()) << 8;
+  value |= static_cast<uint16_t>(spi_read()) << 0;
 
   digitalWrite(kADC__CS, HIGH);
 
-  return 0;
+  return value;
 }
 
 
