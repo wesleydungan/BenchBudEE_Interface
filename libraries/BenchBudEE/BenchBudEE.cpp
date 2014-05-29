@@ -24,6 +24,10 @@ const int kMOSI = 12;
 const int kSCK = 13;
 
 
+//
+// Utilities
+//
+
 void setup_io_pins()
 {
   pinMode(kFAN_CURRENT_MEASUREMENT_STATE, OUTPUT);
@@ -139,6 +143,7 @@ void set_fan_current_pwm_value(uint8_t value)
 }
 
 
+// DAC - MPC4801
 void set_fan_current_limit_value(uint8_t value)
 {
   /*
@@ -211,38 +216,41 @@ void set_led_pwm_value(uint8_t value)
 }
 
 
-//
-// Instrumentation Amp
-//
-
-uint16_t get_instrumentation_amp_reading()
+// ADC - MPC3901
+void configure_adc()
 {
-  return 0;
-}
+#if 1
+  // only configure the adc once
+  static bool configure_adc_complete = false;
 
-
-uint16_t get_temperature_reading()
-{
-  uint16_t value = 0;
+  if (configure_adc_complete)
+  {
+    return;
+  }
+  else
+  {
+    configure_adc_complete = true;
+  }
+#endif
 
   // reset
   //digitalWrite(kADC__RESET, LOW);
   //delay(1);
   //digitalWrite(kADC__RESET, HIGH);
+  //delay(1);
 
   digitalWrite(kADC__CS, LOW);
+
+  uint8_t command = 0;
+
+  //
+  // enable the ADC's external clock mode
+  //
 
   // control byte structure
   // 7, 8 - device address bits
   // 6:1 - register address bits
   // 0 - read / ~write
-
-  uint8_t command = 0;
-
-#if 1
-  //
-  // enable the ADC's external clock mode
-  //
 
   command = 0;
 
@@ -278,18 +286,61 @@ uint16_t get_temperature_reading()
 
   // a chip select toggle is needed to end the current command
   digitalWrite(kADC__CS, HIGH);
-  delay(1);
-  digitalWrite(kADC__CS, LOW);
 
   // this delay makes debugging easier
   delay(5);
-#endif
+}
 
-  //
+
+//
+// Instrumentation Amp
+//
+
+uint16_t get_instrumentation_amp_reading()
+{
+  uint16_t value = 0;
+
+  configure_adc();
+
   // read from ADC
   //
 
-  command = 0;
+  digitalWrite(kADC__CS, LOW);
+
+  uint8_t command = 0;
+
+  // 0x03-0x05 is CH1
+  command |= 0x00 << 1;
+
+  // read / ~write
+  command |= 1 << 0;
+
+  spi_write(command);
+
+  // this delay makes debugging easier
+  delay(5);
+
+  value |= static_cast<uint16_t>(spi_read()) << 8;
+  value |= static_cast<uint16_t>(spi_read()) << 0;
+
+  digitalWrite(kADC__CS, HIGH);
+
+  return value;
+}
+
+
+uint16_t get_temperature_reading()
+{
+  uint16_t value = 0;
+
+  configure_adc();
+
+  // read from ADC
+  //
+
+  digitalWrite(kADC__CS, LOW);
+
+  uint8_t command = 0;
 
   // 0x03-0x05 is CH1
   command |= 0x03 << 1;

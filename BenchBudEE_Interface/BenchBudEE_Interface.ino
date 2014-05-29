@@ -8,7 +8,6 @@ void setup()
   setup_io_pins();
 
 #if 1
-  // disabled for now
   Serial.begin(9600);
 
   while (!Serial)
@@ -170,7 +169,10 @@ void loop()
 #endif
 
 #if 1
-  uint16_t value = get_temperature_reading();
+  uint16_t value;
+  value = get_instrumentation_amp_reading();
+  return_value(value);
+  value = get_temperature_reading();
   return_value(value);
   delay(2000);
 #endif
