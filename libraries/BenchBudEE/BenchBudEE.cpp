@@ -219,8 +219,9 @@ void set_led_pwm_value(uint8_t value)
 // ADC - MPC3901
 void configure_adc()
 {
-#if 1
-  // only configure the adc once
+#if 0
+  // only configure the adc once; this didn't work too well because turning the
+  // BenchBudEE off and back on would not cause the ADC to be configured again
   static bool configure_adc_complete = false;
 
   if (configure_adc_complete)
@@ -234,10 +235,10 @@ void configure_adc()
 #endif
 
   // reset
-  //digitalWrite(kADC__RESET, LOW);
-  //delay(1);
-  //digitalWrite(kADC__RESET, HIGH);
-  //delay(1);
+  digitalWrite(kADC__RESET, LOW);
+  delay(1);
+  digitalWrite(kADC__RESET, HIGH);
+  delay(1);
 
   digitalWrite(kADC__CS, LOW);
 
@@ -280,7 +281,7 @@ void configure_adc()
   command |= 0 << 1;
 
   // CLKEXT
-  command |= 1 << 0;
+  command |= 0 << 0;
 
   spi_write(command);
 
@@ -309,7 +310,7 @@ uint16_t get_instrumentation_amp_reading()
 
   uint8_t command = 0;
 
-  // 0x03-0x05 is CH1
+  // 0x00-0x02 is CH0
   command |= 0x00 << 1;
 
   // read / ~write
@@ -318,7 +319,7 @@ uint16_t get_instrumentation_amp_reading()
   spi_write(command);
 
   // this delay makes debugging easier
-  delay(5);
+  delay(1);
 
   value |= static_cast<uint16_t>(spi_read()) << 8;
   value |= static_cast<uint16_t>(spi_read()) << 0;
@@ -351,7 +352,7 @@ uint16_t get_temperature_reading()
   spi_write(command);
 
   // this delay makes debugging easier
-  delay(5);
+  delay(1);
 
   value |= static_cast<uint16_t>(spi_read()) << 8;
   value |= static_cast<uint16_t>(spi_read()) << 0;
