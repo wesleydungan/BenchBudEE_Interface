@@ -36,8 +36,9 @@ void set_led_pwm_value(uint8_t value);
 
 
 // Instrumentation Amp
-uint16_t get_instrumentation_amp_reading();
-uint16_t get_temperature_reading();
+int16_t get_channel_reading(int channel_number);
+double get_channel_voltage(int channel_number);
+double get_temperature();
 
 
 // Relay

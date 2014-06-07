@@ -297,9 +297,9 @@ void configure_adc()
 // Instrumentation Amp
 //
 
-uint16_t get_instrumentation_amp_reading()
+int16_t get_channel_reading(int channel_number)
 {
-  uint16_t value = 0;
+  int16_t value = 0;
 
   configure_adc();
 
@@ -311,7 +311,15 @@ uint16_t get_instrumentation_amp_reading()
   uint8_t command = 0;
 
   // 0x00-0x02 is CH0
-  command |= 0x00 << 1;
+  // 0x03-0x05 is CH1
+  if (channel_number == 0)
+  {
+    command |= 0x00 << 1;
+  }
+  else
+  {
+    command |= 0x03 << 1;
+  }
 
   // read / ~write
   command |= 1 << 0;
@@ -330,36 +338,27 @@ uint16_t get_instrumentation_amp_reading()
 }
 
 
-uint16_t get_temperature_reading()
+double get_channel_voltage(int channel_number)
 {
-  uint16_t value = 0;
+  double voltage = 0.0;
 
-  configure_adc();
+  int16_t reading = get_channel_reading(channel_number);
 
-  // read from ADC
-  //
+  voltage = 2.411e-5 * static_cast<double>(reading);
 
-  digitalWrite(kADC__CS, LOW);
+  return voltage;
+}
 
-  uint8_t command = 0;
 
-  // 0x03-0x05 is CH1
-  command |= 0x03 << 1;
+double get_temperature()
+{
+  double temperature = 0.0;
 
-  // read / ~write
-  command |= 1 << 0;
+  double ch1_voltage = get_channel_voltage(1);
 
-  spi_write(command);
+  temperature = (2.0 * ch1_voltage - 1.035) / -5.05e-3;
 
-  // this delay makes debugging easier
-  delay(1);
-
-  value |= static_cast<uint16_t>(spi_read()) << 8;
-  value |= static_cast<uint16_t>(spi_read()) << 0;
-
-  digitalWrite(kADC__CS, HIGH);
-
-  return value;
+  return temperature;
 }
 
 

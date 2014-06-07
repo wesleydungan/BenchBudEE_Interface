@@ -31,9 +31,30 @@ void unknown_command(char* command_buffer)
 void return_value(uint16_t value)
 {
   Serial.print("OK: ");
+
   char value_string[8];
   sprintf(value_string, "0x%04x\n", value);
+
   Serial.print(value_string);
+}
+
+
+void print_insturmentation_amp_values(double voltage,
+                                      double temperature)
+{
+  Serial.print("OK: ");
+
+  char voltage_string[8];
+  dtostrf(voltage, 5, 3, voltage_string);
+
+  char temperature_string[8];
+  dtostrf(temperature, 5, 3, temperature_string);
+
+  Serial.print("ch0_voltage = ");
+  Serial.print(voltage_string);
+  Serial.print("V, temperature = ");
+  Serial.print(temperature_string);
+  Serial.print("F\n");
 }
 
 
@@ -108,11 +129,11 @@ void process_get_command(char* command_buffer)
   }
   else if (strcmp(command_buffer, "gia") == 0)
   {
-    value = get_instrumentation_amp_reading();
+    value = get_channel_reading(0);
   }
   else if (strcmp(command_buffer, "g_t") == 0)
   {
-    value = get_temperature_reading();
+    value = get_channel_reading(1);
   }
   else
   {
@@ -131,6 +152,7 @@ void loop()
   // turn the relay on and off
   set_relay_state(kRelayOn);
   delay(2000);
+  
   set_relay_state(kRelayOff);
   delay(2000);
 #endif
@@ -150,8 +172,10 @@ void loop()
   
   set_fan_current_limit_value(0);
   delay(2000);
+  
   set_fan_current_limit_value(127);
   delay(2000);
+  
   set_fan_current_limit_value(255);
   delay(2000);
 #endif
@@ -164,16 +188,21 @@ void loop()
 
   set_fan_current_measurement_state(kFanCurrentMeasurementOn);
   delay(2000);
+  
   set_fan_current_measurement_state(kFanCurrentMeasurementOff);
   delay(2000);
 #endif
 
 #if 1
-  uint16_t value;
-  value = get_instrumentation_amp_reading();
-  return_value(value);
-  value = get_temperature_reading();
-  return_value(value);
+  //uint16_t value = get_channel_reading(0);
+  //return_value(value);
+  //value = get_channel_reading(1);
+  //return_value(value);
+
+  double ch0_voltage = get_channel_voltage(0);
+  double temperature = (9.0 / 5.0 * get_temperature()) + 32.0;
+  print_insturmentation_amp_values(ch0_voltage, temperature);
+  
   delay(2000);
 #endif
 
